@@ -1,0 +1,65 @@
+# Default UniFi syslog alert rules for unifi_ssh_logs.
+# Extra rules: drop YAML files under /config/unifi_ssh_logs/rules.d/
+- id: wan_down
+  name: WAN down
+  severity: critical
+  source: messages
+  pattern: '(?i)WAN.*(down|disconnected|OFFLINE)|LCP.*(fail|timeout)'
+  enabled: true
+  clear_after_minutes: 30
+
+- id: wan_up
+  name: WAN up
+  severity: info
+  source: messages
+  pattern: '(?i)WAN.*(up|connected|ONLINE)'
+  enabled: true
+  clear_after_minutes: 15
+
+- id: ipsec_down
+  name: IPsec / VPN issue
+  severity: warning
+  source: any
+  pattern: '(?i)(ipsec|charon).*(DPD|delete|INSTALLED.*fail|NO_PROPOSAL)'
+  enabled: true
+  clear_after_minutes: 30
+
+- id: dhcp_flood
+  name: DHCP problem
+  severity: warning
+  source: messages
+  pattern: '(?i)DHCP.*(NAK|no available leases|flood|decline)'
+  enabled: true
+  clear_after_minutes: 30
+
+- id: auth_fail
+  name: Auth failure
+  severity: warning
+  source: any
+  pattern: '(?i)(Failed password|authentication failure|invalid user|Invalid user)'
+  enabled: true
+  clear_after_minutes: 30
+
+- id: adopt_fail
+  name: Device adoption / inform fail
+  severity: warning
+  source: any
+  pattern: '(?i)inform.*(fail|timeout)|adoption.*(fail)'
+  enabled: true
+  clear_after_minutes: 45
+
+- id: high_cpu_temp
+  name: High CPU temperature
+  severity: warning
+  source: any
+  pattern: '(?i)temperature.*(critical|overheat)|thermal.*(throttle|critical)'
+  enabled: true
+  clear_after_minutes: 30
+
+- id: disk_full
+  name: Disk / filesystem full
+  severity: critical
+  source: any
+  pattern: '(?i)No space left|filesystem.*(full|readonly)|ENOSPC'
+  enabled: true
+  clear_after_minutes: 60

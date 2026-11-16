@@ -1,0 +1,42 @@
+blueprint:
+  name: UniFi SSH Logs — Notify on alert
+  description: >
+    Send a notification when unifi_ssh_logs fires an alert event.
+    Optionally filter by rule_id (e.g. wan_down).
+  domain: automation
+  author: Infra_LAB
+  input:
+    rule_id:
+      name: Rule ID filter
+      description: Leave empty to notify on any rule; or set e.g. wan_down
+      default: ""
+      selector:
+        text:
+    notify_service:
+      name: Notify service
+      description: e.g. notify.mobile_app_phone
+      selector:
+        text:
+
+variables:
+  rule_filter: !input rule_id
+
+triggers:
+  - trigger: event
+    event_type: unifi_ssh_logs_alert
+
+conditions:
+  - condition: template
+    value_template: "{{ rule_filter == '' or trigger.event.data.rule_id == rule_filter }}"
+
+actions:
+  - action: !input notify_service
+    data:
+      title: >
+        UniFi {{ trigger.event.data.severity | default('alert') }} —
+        {{ trigger.event.data.name | default(trigger.event.data.rule_id) }}
+      message: >-
+        {{ trigger.event.data.message | default('') | truncate(120, True, '…') }}
+
+mode: queued
+max: 10

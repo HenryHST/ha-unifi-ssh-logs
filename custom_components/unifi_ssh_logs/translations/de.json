@@ -1,0 +1,87 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "UniFi SSH Logs",
+        "description": "SSH-Private-Key-Pfad und/oder Passwort angeben. Für secrets.yaml YAML-Setup nutzen (siehe README).",
+        "data": {
+          "host": "Console-Host",
+          "username": "SSH-Benutzer",
+          "key_path": "Pfad zum privaten Schlüssel (optional bei Passwort)",
+          "password": "SSH-Passwort (optional bei Key)",
+          "known_hosts": "known_hosts-Pfad",
+          "out_dir": "Log-Ausgabeverzeichnis",
+          "scan_interval": "Poll-Intervall (Sekunden)",
+          "enable_parsing": "Alert-Parsing aktivieren",
+          "custom_rules_path": "Verzeichnis für eigene Rules",
+          "fetch_messages": "/var/log/messages abrufen",
+          "fetch_journal": "journalctl -u unifi abrufen",
+          "fetch_unifi": "UniFi-App-Logs abrufen"
+        }
+      }
+    },
+    "error": {
+      "key_missing": "SSH-Private-Key-Datei nicht gefunden",
+      "auth_missing": "Gültigen Key-Pfad oder Passwort angeben",
+      "path_outside_config": "Pfade müssen unter dem Home-Assistant-Config-Verzeichnis liegen",
+      "unknown": "Unerwarteter Fehler"
+    },
+    "abort": {
+      "already_configured": "Diese UniFi-Console ist bereits konfiguriert",
+      "key_missing": "SSH-Private-Key-Datei nicht gefunden",
+      "auth_missing": "Gültigen Key-Pfad oder Passwort angeben",
+      "path_outside_config": "Pfade müssen unter dem Home-Assistant-Config-Verzeichnis liegen",
+      "unknown": "Unerwarteter Fehler"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "UniFi SSH Logs Optionen",
+        "data": {
+          "scan_interval": "Poll-Intervall (Sekunden)",
+          "enable_parsing": "Alert-Parsing aktivieren",
+          "fetch_messages": "/var/log/messages abrufen",
+          "fetch_journal": "journalctl -u unifi abrufen",
+          "fetch_unifi": "UniFi-App-Logs abrufen",
+          "retention_max_files": "Max. Log-Dateien behalten",
+          "retention_max_age_days": "Logs älter als (Tage) löschen",
+          "custom_rules_path": "Verzeichnis für eigene Rules",
+          "out_dir": "Log-Ausgabeverzeichnis",
+          "key_path": "Pfad zum privaten Schlüssel",
+          "password": "SSH-Passwort (leer lassen = unverändert)"
+        }
+      }
+    },
+    "error": {
+      "key_missing": "SSH-Private-Key-Datei nicht gefunden",
+      "auth_missing": "Gültigen Key-Pfad oder Passwort angeben",
+      "path_outside_config": "Pfade müssen unter dem Home-Assistant-Config-Verzeichnis liegen",
+      "unknown": "Unerwarteter Fehler"
+    }
+  },
+  "entity": {
+    "button": {
+      "fetch_logs": { "name": "Logs abrufen" },
+      "fetch_support": { "name": "Support-Bundle abrufen" },
+      "fetch_all": { "name": "Alles abrufen" },
+      "clear_alerts": { "name": "Alerts zurücksetzen" }
+    },
+    "sensor": {
+      "last_status": { "name": "Letzter Status" },
+      "last_fetch": { "name": "Letzter Abruf" },
+      "last_error": { "name": "Letzter Fehler" },
+      "open_alerts": { "name": "Offene Alerts" },
+      "match_count": { "name": "Treffer gesamt" }
+    },
+    "binary_sensor": {
+      "alert_rule": { "name": "{rule}" }
+    },
+    "switch": {
+      "polling": { "name": "Abruf aktiv" }
+    },
+    "event": {
+      "alert": { "name": "Alert" }
+    }
+  }
+}

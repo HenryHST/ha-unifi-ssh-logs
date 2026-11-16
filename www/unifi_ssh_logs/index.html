@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>UniFi SSH Logs 0.4.1 — Dokumentation</title>
+  <style>
+    :root {
+      --blue: #006fff;
+      --bg: #f4f6f8;
+      --card: #fff;
+      --text: #1a1d21;
+      --muted: #5c6670;
+      --border: #e2e6ea;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #111418;
+        --card: #1a1f26;
+        --text: #e8ecf0;
+        --muted: #9aa3ad;
+        --border: #2a3139;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+    header {
+      background: var(--blue);
+      color: #fff;
+      padding: 1.25rem 1.5rem;
+    }
+    header h1 { margin: 0 0 0.25rem; font-size: 1.4rem; font-weight: 650; }
+    header p { margin: 0; opacity: 0.92; font-size: 0.95rem; }
+    main { max-width: 52rem; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
+    nav.toc {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem 1.15rem;
+      margin-bottom: 1rem;
+      font-size: 0.88rem;
+    }
+    nav.toc a { margin-right: 0.65rem; white-space: nowrap; }
+    section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.15rem;
+      margin-bottom: 1rem;
+    }
+    h2 { margin: 0 0 0.65rem; font-size: 1.1rem; color: var(--blue); }
+    h3 { margin: 1rem 0 0.4rem; font-size: 0.98rem; }
+    p, li { font-size: 0.95rem; }
+    .muted { color: var(--muted); font-size: 0.88rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th, td { border-bottom: 1px solid var(--border); padding: 0.45rem 0.35rem; text-align: left; vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; }
+    code, pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.82rem;
+    }
+    code {
+      background: var(--bg);
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+    }
+    pre {
+      background: #0b1220;
+      color: #e8ecf0;
+      padding: 0.85rem 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+    ul, ol { padding-left: 1.2rem; }
+    a { color: var(--blue); }
+    .pill {
+      display: inline-block;
+      background: color-mix(in srgb, var(--blue) 14%, transparent);
+      color: var(--blue);
+      border-radius: 999px;
+      padding: 0.15rem 0.55rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      margin: 0 0.3rem 0.35rem 0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>UniFi SSH Logs</h1>
+    <p>Home-Assistant-Integration <code style="background:rgba(255,255,255,.18);color:#fff">unifi_ssh_logs</code> · Version 0.4.1</p>
+  </header>
+  <main>
+    <section>
+      <span class="pill">v0.4.1</span>
+      <span class="pill">ha02 · 192.168.0.106</span>
+      <span class="pill">Console 192.168.0.1</span>
+      <span class="pill">Poll 5 min</span>
+      <p class="muted" style="margin-top:0.75rem">
+        Stand 2026-11-14 · SoT <code>scripts/ha-unifi-syslog/</code> ·
+        Repo-Markdown <code>docs/ha-unifi-ssh-logs.md</code>
+      </p>
+      <p>Holt Console-Logs per SSH, matched Regex-Alert-Rules und liefert Events / Binary-Sensors.
+        Nicht die offizielle UniFi-Network-Integration.</p>
+      <p class="muted">Diese Seite liegt unter <code>/local/unifi_ssh_logs/</code>.
+        Optional in der Sidebar: <strong>Settings → Dashboards → Add dashboard → Webpage</strong>
+        (URL dieselbe; <code>panel_iframe</code> gibt es seit HA 2024.11 nicht mehr).</p>
+    </section>
+
+    <nav class="toc">
+      <a href="#diagram">Diagramm</a>
+      <a href="#ablauf">Ablauf</a>
+      <a href="#auth">Auth</a>
+      <a href="#card">Polling &amp; Card</a>
+      <a href="#entities">Entities</a>
+      <a href="#options">Quellen &amp; Retention</a>
+      <a href="#service">Service</a>
+      <a href="#blueprint">Blueprint</a>
+      <a href="#rules">Rules</a>
+      <a href="#logs">Logs</a>
+      <a href="#diagnostics">Diagnostics</a>
+      <a href="#troubleshoot">Troubleshooting</a>
+    </nav>
+
+    <section id="diagram">
+      <h2>Architektur (SeeCode)</h2>
+      <p class="muted">HA Trigger → Coordinator → asyncssh → UniFi Console → Parser → Alerts / Dateien.</p>
+      <figure style="margin:0.75rem 0 0;padding:0.5rem;background:var(--bg);border-radius:8px;border:1px solid var(--border);overflow:auto;">
+        <img src="unifi-ssh-logs-flow.svg" alt="UniFi SSH Logs Architekturdiagramm" style="display:block;width:100%;height:auto;max-width:52rem;margin:0 auto;" />
+      </figure>
+      <p class="muted" style="margin-top:0.65rem;">
+        Interaktiv (Trace): <a href="unifi-ssh-logs-flow.html">unifi-ssh-logs-flow.html</a>
+      </p>
+    </section>
+
+    <section id="ablauf">
+      <h2>Ablauf</h2>
+      <ol>
+        <li>SSH: <code>messages</code>, <code>journalctl -u unifi</code>, UniFi-App-Logs (je nach Optionen); optional Support-Bundle</li>
+        <li>Nur neue Zeilen seit Cursor</li>
+        <li>Regex-Rules → Bus-Event + Binary-Sensor <code>on</code></li>
+        <li>Auto-Clear nach <code>clear_after_minutes</code> oder Button „Clear alerts“</li>
+        <li>Dateien unter <code>/config/unifi_logs/</code> + Retention</li>
+      </ol>
+      <p class="muted">SSH-Verbindungen (asyncssh) laufen async auf dem HA-Event-Loop; der <strong>Import</strong> von <code>asyncssh</code> erfolgt im Executor (kein Blocking-Import auf dem Loop).</p>
+    </section>
+
+    <section id="auth">
+      <h2>Authentifizierung</h2>
+      <p>SSH auf der Console aktivieren (UniFi → Settings → Control Plane → Console → SSH).</p>
+      <h3>SSH-Key (empfohlen)</h3>
+      <p>Key <code>/config/ssh/ha-unifi-logs</code> · known_hosts <code>/config/ssh/known_hosts</code>.
+        Public Key → <code>authorized_keys</code> von <code>root@192.168.0.1</code>.</p>
+      <p>Fehlt der Host in <code>known_hosts</code> → <strong>accept-new</strong> (einmalig ohne strikte Prüfung).</p>
+      <h3>Passwort via secrets.yaml</h3>
+<pre>unifi_ssh_logs:
+  host: 192.168.0.1
+  username: root
+  password: !secret unifi_ssh_password
+  known_hosts: /config/ssh/known_hosts</pre>
+      <p class="muted">UI-Config-Flow kann <code>!secret</code> nicht auflösen. UI-Passwörter landen in <code>.storage</code>.</p>
+      <h3>Sicherheit (0.4.1)</h3>
+      <ul>
+        <li>Pfade (<code>out_dir</code>, Key, known_hosts, Rules) nur unter dem HA-Config-Verzeichnis</li>
+        <li>Events / <code>sample_line</code> / <code>alert_history</code> / Notify: Logzeilen redacted + gekürzt</li>
+        <li>Custom-Rules: Pattern-/Anzahl-Limits (ReDoS); Support-Fetch mit 5‑Min-Cooldown</li>
+        <li><code>asyncssh</code>-Import im Executor; Download-API nur mit HA-Auth (kein unauth Tab auf <code>/api/…</code>)</li>
+      </ul>
+    </section>
+
+
+    <section id="card">
+      <h2>Polling &amp; Log-Card (0.4.1)</h2>
+      <ul>
+        <li>Switch <strong>Abruf aktiv / Polling</strong> — schaltet den Auto-Abruf ab (Buttons/Service bleiben).</li>
+        <li>Lovelace-Resource: <code>/local/unifi_ssh_logs/unifi-ssh-logs-card.js?v=0.4.1</code> (JavaScript Module) — nach Updates Query erhöhen / hard-reload</li>
+        <li>Card-Typ <code>custom:unifi-ssh-logs-card</code> — Logliste + Download TXT/CSV per <code>fetchWithAuth</code></li>
+        <li>API <code>/api/unifi_ssh_logs/files</code> · <code>/api/unifi_ssh_logs/download</code></li>
+        <li>Safari: Download ggf. als Blob-Tab (Popups erlauben)</li>
+      </ul>
+    </section>
+
+    <section id="entities">
+      <h2>Entities</h2>
+      <table>
+        <thead><tr><th>Typ</th><th>Keys</th></tr></thead>
+        <tbody>
+          <tr><td>Buttons</td><td><code>fetch_logs</code>, <code>fetch_support</code>, <code>fetch_all</code>, <code>clear_alerts</code></td></tr>
+          <tr><td>Sensors</td><td><code>last_status</code>, <code>last_fetch</code>, <code>last_error</code>, <code>open_alerts</code>, <code>match_count</code></td></tr>
+          <tr><td>Binary sensors</td><td>pro Rule, z. B. <code>wan_down</code>, <code>disk_full</code></td></tr>
+          <tr><td>Event</td><td>Bus <code>unifi_ssh_logs_alert</code> · Entity <code>event.…_alert</code></td></tr>
+        </tbody>
+      </table>
+      <ul>
+        <li><code>last_status</code> → Attribut <code>last_files</code></li>
+        <li><code>match_count</code> → Attribut <code>alert_history</code> (redacted Treffer)</li>
+        <li>Binary-Sensor-Attribute: <code>last_match</code>, <code>match_count</code>, <code>sample_line</code> (redacted), <code>severity</code>, <code>rule_id</code></li>
+      </ul>
+    </section>
+
+    <section id="options">
+      <h2>Quellen &amp; Log-Retention (Options)</h2>
+      <p>Unter Integration → Konfigurieren:</p>
+      <table>
+        <thead><tr><th>Option</th><th>Default</th><th>Bedeutung</th></tr></thead>
+        <tbody>
+          <tr><td><code>fetch_messages</code></td><td>an</td><td><code>/var/log/messages</code></td></tr>
+          <tr><td><code>fetch_journal</code></td><td>an</td><td><code>journalctl -u unifi</code></td></tr>
+          <tr><td><code>fetch_unifi</code></td><td>an</td><td>UniFi-App-Logs (server/core)</td></tr>
+          <tr><td><code>retention_max_files</code></td><td>40</td><td>Max. Dateien behalten</td></tr>
+          <tr><td><code>retention_max_age_days</code></td><td>7</td><td>Ältere Dateien löschen</td></tr>
+        </tbody>
+      </table>
+      <p class="muted">Nur benötigte Quellen aktivieren → kürzere SSH-Sessions.</p>
+    </section>
+
+    <section id="service">
+      <h2>Service <code>unifi_ssh_logs.fetch</code></h2>
+      <p>Für Automationen ohne Button-Entity:</p>
+<pre>action: unifi_ssh_logs.fetch
+data:
+  mode: logs          # logs | messages | journal | unifi | support | all
+  include_support: false
+  # entry_id: optional</pre>
+    </section>
+
+    <section id="blueprint">
+      <h2>Blueprint (Notify)</h2>
+      <p>Pfad in HA: <code>/config/blueprints/automation/unifi_ssh_logs/unifi_ssh_logs_notify.yaml</code></p>
+      <p>SoT: <code>scripts/ha-unifi-syslog/blueprints/automation/unifi_ssh_logs_notify.yaml</code></p>
+      <p>Einstellungen → Automationen → Blueprint erstellen → <strong>UniFi SSH Logs — Notify on alert</strong>
+        (optional <code>rule_id</code>-Filter, Notify-Service z. B. <code>notify.mobile_app_…</code>).</p>
+    </section>
+
+    <section id="rules">
+      <h2>Default-Alert-Rules</h2>
+      <table>
+        <thead><tr><th>rule_id</th><th>Severity</th><th>Bedeutung</th></tr></thead>
+        <tbody>
+          <tr><td><code>wan_down</code></td><td>critical</td><td>WAN weg / PPP LCP</td></tr>
+          <tr><td><code>wan_up</code></td><td>info</td><td>WAN wieder da</td></tr>
+          <tr><td><code>ipsec_down</code></td><td>warning</td><td>IPsec / charon</td></tr>
+          <tr><td><code>dhcp_flood</code></td><td>warning</td><td>DHCP-Probleme</td></tr>
+          <tr><td><code>auth_fail</code></td><td>warning</td><td>Login-/Auth-Fehler</td></tr>
+          <tr><td><code>adopt_fail</code></td><td>warning</td><td>Adoption / inform fail</td></tr>
+          <tr><td><code>high_cpu_temp</code></td><td>warning</td><td>Thermik</td></tr>
+          <tr><td><code>disk_full</code></td><td>critical</td><td>Speicher voll</td></tr>
+        </tbody>
+      </table>
+      <h3>Eigene Rules</h3>
+      <p><code>/config/unifi_ssh_logs/rules.d/*.yaml</code> — gleiche <code>id</code> überschreibt Defaults.</p>
+<pre>- id: my_rule
+  name: My pattern
+  severity: warning
+  source: any
+  pattern: '(?i)something.?bad'
+  enabled: true
+  clear_after_minutes: 30</pre>
+    </section>
+
+    <section>
+      <h2>Beispiel-Automation</h2>
+<pre>automation:
+  - alias: UniFi WAN down notify
+    triggers:
+      - trigger: event
+        event_type: unifi_ssh_logs_alert
+        event_data:
+          rule_id: wan_down
+    actions:
+      - action: notify.mobile_app_…
+        data:
+          title: UniFi WAN
+          message: "{{ trigger.event.data.message }}"</pre>
+    </section>
+
+    <section id="logs">
+      <h2>Log-Dateien</h2>
+      <table>
+        <thead><tr><th>Ort</th><th>Pfad</th></tr></thead>
+        <tbody>
+          <tr><td>In HA</td><td><code>/config/unifi_logs/</code></td></tr>
+          <tr><td>Host-Volume</td><td><code>/opt/homelab/data/homeassistant/config/unifi_logs/</code></td></tr>
+        </tbody>
+      </table>
+      <p class="muted">Beispiele: <code>messages-….log</code>, <code>journal-unifi-….txt</code>, <code>unifi-server-….log</code>, <code>support-….tar.gz</code></p>
+    </section>
+
+    <section id="diagnostics">
+      <h2>Diagnostics</h2>
+      <p>Einstellungen → Geräte &amp; Dienste → UniFi SSH Logs → ⋮ → <strong>Diagnosedaten herunterladen</strong>.</p>
+      <p>Passwort wird redacted; Key-Pfad bleibt sichtbar, Inhalt nicht. Enthält Status, offene Alerts, gekürzte History.</p>
+    </section>
+
+    <section id="troubleshoot">
+      <h2>Troubleshooting</h2>
+      <table>
+        <thead><tr><th>Symptom</th><th>Check</th></tr></thead>
+        <tbody>
+          <tr><td>Host key not trusted</td><td><code>ssh-keyscan -H 192.168.0.1</code> → known_hosts; Integration nutzt accept-new</td></tr>
+          <tr><td><code>last_status</code> = error</td><td><code>last_error</code>, Key/Passwort, Console-SSH</td></tr>
+          <tr><td>Keine Alerts</td><td>Parsing an? Rules enabled? Erster Lauf nur ~50 Zeilen</td></tr>
+          <tr><td>Zu viele Dateien</td><td>Retention-Options prüfen (Default 40 Dateien / 7 Tage)</td></tr>
+          <tr><td>Blocking <code>import asyncssh</code></td><td>0.4.1+ deployen (Import im Executor) + HA neu starten</td></tr>
+          <tr><td>Download 401 / Ban</td><td>Card-Resource <code>?v=0.4.1</code>, hard-reload (kein unauth API-Tab)</td></tr>
+          <tr><td>Download HTTP 500</td><td>0.4.1+ (Response ohne <code>charset</code> in <code>content_type</code>)</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Nicht im Scope</h2>
+      <ul>
+        <li>Offizielle UniFi-Network-Integration ersetzen</li>
+        <li>Separate Key-Passphrase</li>
+        <li>ML / Anomalie-Erkennung — nur Regex-Rules</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

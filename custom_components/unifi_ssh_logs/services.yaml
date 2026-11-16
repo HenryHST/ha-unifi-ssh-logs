@@ -1,0 +1,26 @@
+fetch:
+  name: Fetch logs
+  description: Fetch UniFi console logs over SSH (same path as the buttons).
+  fields:
+    mode:
+      name: Mode
+      description: logs (default), messages, journal, unifi, support, or all
+      required: false
+      default: logs
+      example: logs
+      selector:
+        select:
+          options:
+            - logs
+            - messages
+            - journal
+            - unifi
+            - support
+            - all
+    include_support:
+      name: Include support bundle
+      description: Also run ubnt-make-support-file when mode is logs
+      required: false
+      default: false
+      selector:
+        boolean:

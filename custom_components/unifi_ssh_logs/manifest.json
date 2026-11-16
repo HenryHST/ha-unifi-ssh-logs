@@ -1,0 +1,11 @@
+{
+  "domain": "unifi_ssh_logs",
+  "name": "UniFi SSH Logs",
+  "codeowners": ["@HenryHST"],
+  "config_flow": true,
+  "documentation": "https://github.com/HenryHST/ha-unifi-ssh-logs",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/HenryHST/ha-unifi-ssh-logs/issues",
+  "requirements": ["asyncssh>=2.14.0", "PyYAML>=6.0"],
+  "version": "0.4.1"
+}
