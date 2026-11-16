@@ -13,10 +13,12 @@
       },
       "authorize": {
         "title": "SSH-Key freigeben",
-        "description": "Diesen Public Key auf der UniFi-Console hinterlegen (Einstellungen → Control Plane → Console → SSH / authorized_keys für den SSH-Benutzer), kurz warten, dann bestätigen. Host oder Benutzer unten korrigieren, falls die Verbindung scheitert — der Key bleibt gleich.\n\n`{public_key}`",
+        "description": "Das ist **Console-SSH** zum Gateway (meist Benutzer `root`) — nicht Device SSH (UniFi Geräte → Device SSH Settings).\n\n**Console-SSH-Passwort** unten eintragen. Home Assistant meldet sich einmal an und trägt den erzeugten Public Key in `authorized_keys` auf der Console ein. Benutzer muss `root` bleiben (kein Device-SSH-User).\n\n`{public_key}`",
         "data": {
           "host": "Console-Host",
-          "username": "SSH-Benutzer"
+          "username": "Console-SSH-Benutzer (meist root)",
+          "public_key": "Public Key (wird auf der Console installiert)",
+          "password": "Console-SSH-Passwort (nötig zum Installieren des Keys)"
         }
       }
     },
@@ -24,7 +26,9 @@
       "key_missing": "SSH-Private-Key-Datei nicht gefunden",
       "auth_missing": "Gültigen Key oder Passwort angeben",
       "invalid_key": "Private Key konnte nicht gelesen werden",
-      "invalid_auth": "SSH-Login abgelehnt — Benutzer und freigegebenen Public Key prüfen",
+      "invalid_auth": "SSH-Login abgelehnt — Console-Benutzer root und Console-SSH-Passwort nutzen (kein Device-SSH-Benutzer)",
+      "need_console_password": "Key noch nicht freigegeben — Console-SSH-Passwort eintragen, damit Home Assistant ihn installieren kann",
+      "key_install_failed": "Login ok, aber authorized_keys auf der Console konnte nicht geschrieben werden",
       "cannot_connect": "Console per SSH nicht erreichbar",
       "path_outside_config": "Pfade müssen unter dem Home-Assistant-Config-Verzeichnis liegen",
       "unknown": "Unerwarteter Fehler"

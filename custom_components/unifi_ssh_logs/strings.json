@@ -13,10 +13,12 @@
       },
       "authorize": {
         "title": "Authorise the SSH key",
-        "description": "Add this public key on the UniFi console (Settings → Control Plane → Console → SSH / authorized_keys for the SSH user), wait a moment for it to apply, then submit. You can fix host or username below if the connection fails; the key stays the same.\n\n`{public_key}`",
+        "description": "This is **Console SSH** to the gateway (usually user `root`), not Device SSH (UniFi Devices → Device SSH Settings).\n\nEnter the **console SSH password** below. Home Assistant will log in once and install the generated public key into `authorized_keys` on the console. Username must stay `root` (not a Device SSH user).\n\n`{public_key}`",
         "data": {
           "host": "Console host",
-          "username": "SSH username"
+          "username": "Console SSH username (usually root)",
+          "public_key": "Public key (will be installed on the console)",
+          "password": "Console SSH password (required to install the key)"
         }
       }
     },
@@ -24,7 +26,9 @@
       "key_missing": "SSH private key file not found",
       "auth_missing": "Provide a valid key or a password",
       "invalid_key": "The private key could not be read",
-      "invalid_auth": "SSH login rejected — check username and that the public key is authorised on the console",
+      "invalid_auth": "SSH login rejected — use Console user root and the console SSH password (not a Device SSH username)",
+      "need_console_password": "Key is not authorised yet — enter the Console SSH password so Home Assistant can install it",
+      "key_install_failed": "Logged in, but installing authorized_keys on the console failed",
       "cannot_connect": "Cannot reach the console over SSH",
       "path_outside_config": "Paths must stay under the Home Assistant config directory",
       "unknown": "Unexpected error"

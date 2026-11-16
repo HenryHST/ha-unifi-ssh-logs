@@ -64,11 +64,26 @@ def _validate_paths(hass: HomeAssistant, data: dict[str, Any]) -> None:
         require_under_config(key, config_dir)
 
 
+async def _append_authorized_key(conn: Any, public_key: str) -> None:
+    """Idempotently append ``public_key`` to the remote user's authorized_keys."""
+    import shlex
+
+    quoted = shlex.quote(public_key.strip())
+    script = (
+        "mkdir -p ~/.ssh && chmod 700 ~/.ssh && "
+        "touch ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys && "
+        f"grep -qxF {quoted} ~/.ssh/authorized_keys || echo {quoted} >> ~/.ssh/authorized_keys"
+    )
+    result = await conn.run(script, check=False)
+    if result.exit_status not in (0, None):
+        raise ValueError("key_install_failed")
+
+
 async def _probe_ssh(hass: HomeAssistant, data: dict[str, Any]) -> None:
-    """Attempt one SSH connection with the given credentials."""
+    """Attempt one SSH connection; optionally install generated pubkey via password."""
     asyncssh = await hass.async_add_executor_job(load_asyncssh_blocking)
 
-    def _resolve() -> tuple[Any, str | None]:
+    def _resolve() -> tuple[Any, str | None, str | None]:
         _validate_paths(hass, data)
         key_path = (data.get(CONF_KEY_PATH) or "").strip() or None
         if key_path:
@@ -86,27 +101,41 @@ async def _probe_ssh(hass: HomeAssistant, data: dict[str, Any]) -> None:
             data.get(CONF_KNOWN_HOSTS, DEFAULT_KNOWN_HOSTS),
             data[CONF_HOST],
         )
-        return auth, known
+        install_pub: str | None = None
+        # Console has no Device-SSH key UI; bootstrap authorized_keys when password works.
+        if auth.private_key and auth.password:
+            install_pub = public_key_of(auth.private_key)
+        return auth, known, install_pub
 
     try:
-        auth, known_arg = await hass.async_add_executor_job(_resolve)
+        auth, known_arg, install_pub = await hass.async_add_executor_job(_resolve)
     except PathConfigError as err:
         raise ValueError(str(err) or "path_outside_config") from err
     except AuthConfigError as err:
         raise ValueError(str(err)) from err
 
+    connect_kwargs = auth.to_connect_kwargs(asyncssh)
     kwargs: dict[str, Any] = {
         "host": data[CONF_HOST],
         "username": data.get(CONF_USERNAME, DEFAULT_USERNAME),
         "known_hosts": known_arg,
         "connect_timeout": 20,
-        **auth.to_connect_kwargs(asyncssh),
+        # Match unifi_sms: ignore host OpenSSH config / agent.
+        "config": None,
+        "agent_path": None,
+        **connect_kwargs,
     }
     try:
         async with asyncssh.connect(**kwargs) as conn:
             await conn.run("true", check=False)
+            if install_pub:
+                await _append_authorized_key(conn, install_pub)
     except asyncssh.PermissionDenied as err:
+        if data.get(CONF_PRIVATE_KEY) and not data.get(CONF_PASSWORD):
+            raise ValueError("need_console_password") from err
         raise ValueError("invalid_auth") from err
+    except ValueError:
+        raise
     except (OSError, asyncssh.Error, TimeoutError) as err:
         _LOGGER.debug("SSH probe failed: %s", err)
         raise ValueError("cannot_connect") from err
@@ -126,15 +155,16 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Host, user, optional private key (or generate) / password."""
         errors: dict[str, str] = {}
         if user_input is not None:
-            key = (user_input.get(CONF_PRIVATE_KEY) or "").strip()
+            raw_key = user_input.get(CONF_PRIVATE_KEY)
+            key = (raw_key or "").strip()
             password = user_input.get(CONF_PASSWORD) or None
             try:
                 if key:
                     key = key if key.endswith("\n") else key + "\n"
                     await self.hass.async_add_executor_job(public_key_of, key)
                 elif not password:
-                    key, _pub = await self.hass.async_add_executor_job(generate_key)
-            except Exception:  # noqa: BLE001 — asyncssh key parse errors
+                    key, _ = await self.hass.async_add_executor_job(generate_key)
+            except Exception:  # noqa: BLE001 — asyncssh key parse/gen errors
                 errors[CONF_PRIVATE_KEY] = "invalid_key"
             else:
                 self._data = {
@@ -181,18 +211,39 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     def _authorize_form(self, errors: dict[str, str] | None = None) -> FlowResult:
+        # Display-only; not persisted — copyable public key for the authorize step.
+        display_public_key = "public_key"
+        pub = ""
+        try:
+            pub = public_key_of(self._data[CONF_PRIVATE_KEY])
+        except Exception:  # noqa: BLE001
+            errors = {**(errors or {}), "base": "invalid_key"}
         schema = vol.Schema(
             {
                 vol.Required(CONF_HOST): str,
                 vol.Required(CONF_USERNAME): str,
+                vol.Optional(display_public_key): selector.TextSelector(
+                    selector.TextSelectorConfig(
+                        type=selector.TextSelectorType.TEXT, multiline=True
+                    )
+                ),
+                vol.Optional(CONF_PASSWORD): selector.TextSelector(
+                    selector.TextSelectorConfig(
+                        type=selector.TextSelectorType.PASSWORD
+                    )
+                ),
             }
         )
+        # Do not spread _data (contains private_key); only surface editable fields.
+        suggested = {
+            CONF_HOST: self._data.get(CONF_HOST),
+            CONF_USERNAME: self._data.get(CONF_USERNAME) or DEFAULT_USERNAME,
+            display_public_key: pub or "(unavailable)",
+        }
         return self.async_show_form(
             step_id="authorize",
-            data_schema=self.add_suggested_values_to_schema(schema, self._data),
-            description_placeholders={
-                "public_key": public_key_of(self._data[CONF_PRIVATE_KEY]),
-            },
+            data_schema=self.add_suggested_values_to_schema(schema, suggested),
+            description_placeholders={"public_key": pub or "(unavailable)"},
             errors=errors or {},
         )
 
@@ -202,12 +253,16 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Show public key for Console authorized_keys; then probe."""
         if user_input is None:
             return self._authorize_form()
+        username = user_input[CONF_USERNAME].strip()
+        password = user_input.get(CONF_PASSWORD) or None
         self._data.update(
             {
                 CONF_HOST: user_input[CONF_HOST].strip(),
-                CONF_USERNAME: user_input[CONF_USERNAME].strip(),
+                CONF_USERNAME: username,
             }
         )
+        if password:
+            self._data[CONF_PASSWORD] = password
         return await self.async_step_connect()
 
     async def async_step_connect(
@@ -227,6 +282,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 if code
                 in (
                     "invalid_auth",
+                    "need_console_password",
+                    "key_install_failed",
                     "cannot_connect",
                     "key_missing",
                     "auth_missing",
@@ -312,7 +369,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         config_entry: config_entries.ConfigEntry,
     ) -> config_entries.OptionsFlow:
         return OptionsFlowHandler()
-
 
 class OptionsFlowHandler(config_entries.OptionsFlow):
     """Handle options (paths, polling, optional key_path / password)."""

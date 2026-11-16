@@ -7,5 +7,5 @@
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/HenryHST/ha-unifi-ssh-logs/issues",
   "requirements": ["asyncssh>=2.14.0", "PyYAML>=6.0"],
-  "version": "0.5.0"
+  "version": "0.5.2"
 }

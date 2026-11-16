@@ -6,7 +6,7 @@
 
 Home Assistant custom integration that fetches UniFi console logs over SSH, matches regex alert rules, and exposes events, binary sensors, a polling switch, and a Lovelace log card.
 
-**Version:** 0.5.0 · **Domain:** `unifi_ssh_logs`
+**Version:** 0.5.2 · **Domain:** `unifi_ssh_logs`
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=HenryHST&repository=ha-unifi-ssh-logs&category=integration)
 [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=unifi_ssh_logs)
@@ -17,11 +17,11 @@ Home Assistant custom integration that fetches UniFi console logs over SSH, matc
 
 ## Install (HACS)
 
-1. Install via HACS (custom repository) — or click:  
-   [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=HenryHST&repository=ha-unifi-ssh-logs&category=integration)  
+1. Install via HACS (custom repository) — or click:
+   [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=HenryHST&repository=ha-unifi-ssh-logs&category=integration)
    Manual: HACS → **⋯** → **Custom repositories** → URL `https://github.com/HenryHST/ha-unifi-ssh-logs` → Category **Integration** → Download
 2. Restart Home Assistant
-3. Add the integration under Settings → Devices & services, or click:  
+3. Add the integration under Settings → Devices & services, or click:
    [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=unifi_ssh_logs)
 
 ## Auth (SSH)
@@ -34,7 +34,7 @@ Home Assistant custom integration that fetches UniFi console logs over SSH, matc
 
 1. Copy `www/unifi_ssh_logs/` to `/config/www/unifi_ssh_logs/` (HACS does not install `www/` automatically)
 2. Dashboards → Resources → Add:
-   - URL: `/local/unifi_ssh_logs/unifi-ssh-logs-card.js?v=0.4.1`
+   - URL: `/local/unifi_ssh_logs/unifi-ssh-logs-card.js?v=0.5.2`
    - Type: **JavaScript Module**
 3. Card:
 
@@ -43,7 +43,7 @@ type: custom:unifi-ssh-logs-card
 title: UniFi SSH Logs
 ```
 
-Downloads use authenticated `fetchWithAuth` (TXT/CSV). After card updates, bump `?v=` and hard-reload.
+Month calendar filters the file list by local `mtime` day (Podcraft Restore style); TXT/CSV downloads use authenticated `fetchWithAuth`. After card updates, bump `?v=` and hard-reload.
 
 ## Blueprint
 

@@ -6,7 +6,7 @@ from datetime import timedelta
 from typing import Final
 
 DOMAIN: Final = "unifi_ssh_logs"
-VERSION: Final = "0.5.0"
+VERSION: Final = "0.5.2"
 
 DEFAULT_HOST: Final = "192.168.0.1"
 DEFAULT_USERNAME: Final = "root"

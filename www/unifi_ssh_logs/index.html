@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>UniFi SSH Logs 0.5.0 — Dokumentation</title>
+  <title>UniFi SSH Logs 0.5.2 — Dokumentation</title>
   <style>
     :root {
       --blue: #006fff;
@@ -94,11 +94,11 @@
 <body>
   <header>
     <h1>UniFi SSH Logs</h1>
-    <p>Home-Assistant-Integration <code style="background:rgba(255,255,255,.18);color:#fff">unifi_ssh_logs</code> · Version 0.5.0</p>
+    <p>Home-Assistant-Integration <code style="background:rgba(255,255,255,.18);color:#fff">unifi_ssh_logs</code> · Version 0.5.2</p>
   </header>
   <main>
     <section>
-      <span class="pill">v0.5.0</span>
+      <span class="pill">v0.5.2</span>
       <span class="pill">ha02 · 192.168.0.106</span>
       <span class="pill">Console 192.168.0.1</span>
       <span class="pill">Poll 5 min</span>
@@ -178,11 +178,11 @@
 
 
     <section id="card">
-      <h2>Polling &amp; Log-Card (0.5.0)</h2>
+      <h2>Polling &amp; Log-Card (0.5.1)</h2>
       <ul>
         <li>Switch <strong>Abruf aktiv / Polling</strong> — schaltet den Auto-Abruf ab (Buttons/Service bleiben).</li>
-        <li>Lovelace-Resource: <code>/local/unifi_ssh_logs/unifi-ssh-logs-card.js?v=0.4.1</code> (JavaScript Module) — nach Updates Query erhöhen / hard-reload</li>
-        <li>Card-Typ <code>custom:unifi-ssh-logs-card</code> — Logliste + Download TXT/CSV per <code>fetchWithAuth</code></li>
+        <li>Lovelace-Resource: <code>/local/unifi_ssh_logs/unifi-ssh-logs-card.js?v=0.5.2</code> (JavaScript Module) — nach Updates Query erhöhen / hard-reload</li>
+        <li>Card-Typ <code>custom:unifi-ssh-logs-card</code> — Monats-Kalender (Tage mit Logs) filtert die Liste; Download TXT/CSV per <code>fetchWithAuth</code></li>
         <li>API <code>/api/unifi_ssh_logs/files</code> · <code>/api/unifi_ssh_logs/download</code></li>
         <li>Safari: Download ggf. als Blob-Tab (Popups erlauben)</li>
       </ul>
@@ -310,7 +310,7 @@ data:
           <tr><td>Keine Alerts</td><td>Parsing an? Rules enabled? Erster Lauf nur ~50 Zeilen</td></tr>
           <tr><td>Zu viele Dateien</td><td>Retention-Options prüfen (Default 40 Dateien / 7 Tage)</td></tr>
           <tr><td>Blocking <code>import asyncssh</code></td><td>0.4.1+ deployen (Import im Executor) + HA neu starten</td></tr>
-          <tr><td>Download 401 / Ban</td><td>Card-Resource <code>?v=0.4.1</code>, hard-reload (kein unauth API-Tab)</td></tr>
+          <tr><td>Download 401 / Ban</td><td>Card-Resource <code>?v=0.5.2</code>, hard-reload (kein unauth API-Tab)</td></tr>
           <tr><td>Download HTTP 500</td><td>0.4.1+ (Response ohne <code>charset</code> in <code>content_type</code>)</td></tr>
         </tbody>
       </table>
