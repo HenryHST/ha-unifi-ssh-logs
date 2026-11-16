@@ -1,20 +1,28 @@
 # UniFi SSH Logs
 
+<p align="center">
+  <img src="custom_components/unifi_ssh_logs/brand/logo.png" alt="UniFi SSH Logs" width="128" />
+</p>
+
 Home Assistant custom integration that fetches UniFi console logs over SSH, matches regex alert rules, and exposes events, binary sensors, a polling switch, and a Lovelace log card.
 
-**Version:** 0.4.1  
-**Domain:** `unifi_ssh_logs`  
+**Version:** 0.4.1 · **Domain:** `unifi_ssh_logs`
+
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=HenryHST&repository=ha-unifi-ssh-logs&category=integration)
+[![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=unifi_ssh_logs)
+
 **SoT (lab):** [Infra_LAB `scripts/ha-unifi-syslog/`](https://github.com/HenryHST/Infra_LAB/tree/main/scripts/ha-unifi-syslog) · full docs: [`docs/ha-unifi-ssh-logs.md`](https://github.com/HenryHST/Infra_LAB/blob/main/docs/ha-unifi-ssh-logs.md)
 
 > Not a Supervisor add-on. Do **not** add [hassio-addons](https://github.com/HenryHST/hassio-addons) as a HACS integration repo — use this repository instead.
 
 ## Install (HACS)
 
-1. HACS → **⋯** → **Custom repositories**
-2. URL: `https://github.com/HenryHST/ha-unifi-ssh-logs`
-3. Category: **Integration**
-4. Download / install **UniFi SSH Logs**, then restart Home Assistant
-5. Settings → Devices & services → Add integration → **UniFi SSH Logs**
+1. Install via HACS (custom repository) — or click:  
+   [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=HenryHST&repository=ha-unifi-ssh-logs&category=integration)  
+   Manual: HACS → **⋯** → **Custom repositories** → URL `https://github.com/HenryHST/ha-unifi-ssh-logs` → Category **Integration** → Download
+2. Restart Home Assistant
+3. Add the integration under Settings → Devices & services, or click:  
+   [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=unifi_ssh_logs)
 
 ## Auth (SSH)
 
