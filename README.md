@@ -24,6 +24,10 @@ Home Assistant custom integration that fetches UniFi console logs over SSH, matc
 3. Add the integration under Settings → Devices & services, or click:
    [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=unifi_ssh_logs)
 
+## Security notice
+
+> Enabling **Console SSH** on a UniFi Dream Machine / gateway exposes remote shell access on any network path that can reach the console. You are responsible for locking SSH down (prefer keys, strong password if used, who can reach port 22, and whether SSH stays enabled). Enabling SSH in the UniFi console and using this integration is **at your own risk**; the authors accept no liability for misuse, misconfiguration, or resulting damage.
+
 ## Auth (SSH)
 
 - Enable SSH on the UniFi console (Settings → Control Plane → Console → SSH)
