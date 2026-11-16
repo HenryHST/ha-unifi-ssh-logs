@@ -6,7 +6,7 @@
 
 Home Assistant custom integration that fetches UniFi console logs over SSH, matches regex alert rules, and exposes events, binary sensors, a polling switch, and a Lovelace log card.
 
-**Version:** 0.4.1 · **Domain:** `unifi_ssh_logs`
+**Version:** 0.5.0 · **Domain:** `unifi_ssh_logs`
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=HenryHST&repository=ha-unifi-ssh-logs&category=integration)
 [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=unifi_ssh_logs)
@@ -26,9 +26,9 @@ Home Assistant custom integration that fetches UniFi console logs over SSH, matc
 
 ## Auth (SSH)
 
-- Enable SSH on the UniFi console
-- Prefer a key under `/config/ssh/` (paths must stay under the HA config directory)
-- Or password via YAML / `!secret` (UI passwords land in `.storage`)
+- Enable SSH on the UniFi console (Settings → Control Plane → Console → SSH)
+- **UI (0.5.0):** leave private key empty to generate ed25519 → authorize step shows the public key to paste into Console `authorized_keys` / SSH Keys; or paste an existing OpenSSH private key; or password-only
+- **Legacy / YAML:** key file under `/config/ssh/` (paths must stay under the HA config directory) and/or password via `!secret`
 
 ## Lovelace card
 

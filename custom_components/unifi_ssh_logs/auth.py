@@ -24,15 +24,43 @@ class SshAuth:
 
     key_path: str | None
     password: str | None
+    private_key: str | None = None
 
-    def to_connect_kwargs(self) -> dict[str, Any]:
+    def to_connect_kwargs(self, asyncssh_mod: Any | None = None) -> dict[str, Any]:
         """Build asyncssh keyword args (without host/username/known_hosts)."""
         kwargs: dict[str, Any] = {}
-        if self.key_path:
+        if self.private_key:
+            mod = asyncssh_mod
+            if mod is None:
+                import asyncssh as mod
+            kwargs["client_keys"] = [mod.import_private_key(self.private_key)]
+        elif self.key_path:
             kwargs["client_keys"] = [self.key_path]
         if self.password:
             kwargs["password"] = self.password
         return kwargs
+
+
+def generate_key() -> tuple[str, str]:
+    """Return a new (private OpenSSH, public OpenSSH) ed25519 key pair."""
+    import asyncssh
+
+    key = asyncssh.generate_private_key(
+        "ssh-ed25519", comment="home-assistant-unifi-ssh-logs"
+    )
+    return key.export_private_key().decode(), key.export_public_key().decode().strip()
+
+
+def public_key_of(private_key: str) -> str:
+    """Return the OpenSSH public key line for a private key string."""
+    import asyncssh
+
+    return (
+        asyncssh.import_private_key(private_key)
+        .export_public_key()
+        .decode()
+        .strip()
+    )
 
 
 def host_in_known_hosts(known_hosts_path: Path, host: str) -> bool:
@@ -85,19 +113,27 @@ def resolve_ssh_auth(
     key_path: str | None,
     password: str | None,
     *,
+    private_key: str | None = None,
     key_must_exist: bool = True,
 ) -> SshAuth:
     """
-    Resolve SSH auth: key preferred when file exists; password as fallback/extra.
+    Resolve SSH auth: inline private_key, then key file, then password.
 
     Raises AuthConfigError if no usable credentials.
     """
+    inline = (private_key or "").strip() or None
+    if inline and not inline.endswith("\n"):
+        inline = inline + "\n"
+
     key = (key_path or "").strip() or None
     pwd = password if password else None
     if pwd is not None:
         pwd = str(pwd)
         if pwd == "":
             pwd = None
+
+    if inline:
+        return SshAuth(key_path=None, password=pwd, private_key=inline)
 
     usable_key: str | None = None
     if key:
@@ -109,7 +145,7 @@ def resolve_ssh_auth(
     if usable_key is None and pwd is None:
         raise AuthConfigError("auth_missing")
 
-    return SshAuth(key_path=usable_key, password=pwd)
+    return SshAuth(key_path=usable_key, password=pwd, private_key=None)
 
 
 def incremental_new_lines(

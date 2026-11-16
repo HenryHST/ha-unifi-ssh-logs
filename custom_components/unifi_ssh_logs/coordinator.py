@@ -27,6 +27,7 @@ from .const import (
     CONF_KNOWN_HOSTS,
     CONF_OUT_DIR,
     CONF_PASSWORD,
+    CONF_PRIVATE_KEY,
     CONF_RETENTION_MAX_AGE_DAYS,
     CONF_RETENTION_MAX_FILES,
     CONF_SCAN_INTERVAL,
@@ -187,10 +188,21 @@ class UnifiSshLogsCoordinator(DataUpdateCoordinator[CoordinatorData]):
 
     @property
     def key_path(self) -> str:
+        # Prefer empty when inline private_key is configured (new authorize flow).
+        if self.private_key:
+            return ""
         raw = self._cfg().get(CONF_KEY_PATH, DEFAULT_KEY_PATH) or ""
         if not raw:
             return ""
         return str(require_under_config(raw, self._config_dir()))
+
+    @property
+    def private_key(self) -> str | None:
+        value = self._cfg().get(CONF_PRIVATE_KEY)
+        if not value:
+            return None
+        text = str(value)
+        return text if text.endswith("\n") else text + "\n"
 
     @property
     def password(self) -> str | None:
@@ -427,14 +439,20 @@ class UnifiSshLogsCoordinator(DataUpdateCoordinator[CoordinatorData]):
             SOURCE_UNIFI: [],
         }
 
-        key_path, password, known_hosts, host = (
+        key_path, private_key, password, known_hosts, host = (
             self.key_path,
+            self.private_key,
             self.password,
             self.known_hosts,
             self.host,
         )
         auth = await self.hass.async_add_executor_job(
-            lambda: resolve_ssh_auth(key_path, password, key_must_exist=True)
+            lambda: resolve_ssh_auth(
+                key_path,
+                password,
+                private_key=private_key,
+                key_must_exist=bool(key_path),
+            )
         )
         known_arg = await self.hass.async_add_executor_job(
             lambda: resolve_known_hosts_arg(known_hosts, host)
@@ -444,7 +462,7 @@ class UnifiSshLogsCoordinator(DataUpdateCoordinator[CoordinatorData]):
             "username": self.username,
             "known_hosts": known_arg,
             "connect_timeout": 20,
-            **auth.to_connect_kwargs(),
+            **auth.to_connect_kwargs(asyncssh),
         }
 
         want_support = include_support or mode in ("support", "all")

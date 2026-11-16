@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>UniFi SSH Logs 0.4.1 — Dokumentation</title>
+  <title>UniFi SSH Logs 0.5.0 — Dokumentation</title>
   <style>
     :root {
       --blue: #006fff;
@@ -94,11 +94,11 @@
 <body>
   <header>
     <h1>UniFi SSH Logs</h1>
-    <p>Home-Assistant-Integration <code style="background:rgba(255,255,255,.18);color:#fff">unifi_ssh_logs</code> · Version 0.4.1</p>
+    <p>Home-Assistant-Integration <code style="background:rgba(255,255,255,.18);color:#fff">unifi_ssh_logs</code> · Version 0.5.0</p>
   </header>
   <main>
     <section>
-      <span class="pill">v0.4.1</span>
+      <span class="pill">v0.5.0</span>
       <span class="pill">ha02 · 192.168.0.106</span>
       <span class="pill">Console 192.168.0.1</span>
       <span class="pill">Poll 5 min</span>
@@ -166,18 +166,19 @@
   password: !secret unifi_ssh_password
   known_hosts: /config/ssh/known_hosts</pre>
       <p class="muted">UI-Config-Flow kann <code>!secret</code> nicht auflösen. UI-Passwörter landen in <code>.storage</code>.</p>
-      <h3>Sicherheit (0.4.1)</h3>
+      <h3>Sicherheit (0.5.0)</h3>
       <ul>
-        <li>Pfade (<code>out_dir</code>, Key, known_hosts, Rules) nur unter dem HA-Config-Verzeichnis</li>
+        <li>Pfade (<code>out_dir</code>, Key-Pfad, known_hosts, Rules) nur unter dem HA-Config-Verzeichnis</li>
         <li>Events / <code>sample_line</code> / <code>alert_history</code> / Notify: Logzeilen redacted + gekürzt</li>
         <li>Custom-Rules: Pattern-/Anzahl-Limits (ReDoS); Support-Fetch mit 5‑Min-Cooldown</li>
         <li><code>asyncssh</code>-Import im Executor; Download-API nur mit HA-Auth (kein unauth Tab auf <code>/api/…</code>)</li>
+        <li>Config-Flow: Key erzeugen/einfügen + Authorize mit Public-Key (Private Key in Entry, Diagnostics redacted)</li>
       </ul>
     </section>
 
 
     <section id="card">
-      <h2>Polling &amp; Log-Card (0.4.1)</h2>
+      <h2>Polling &amp; Log-Card (0.5.0)</h2>
       <ul>
         <li>Switch <strong>Abruf aktiv / Polling</strong> — schaltet den Auto-Abruf ab (Buttons/Service bleiben).</li>
         <li>Lovelace-Resource: <code>/local/unifi_ssh_logs/unifi-ssh-logs-card.js?v=0.4.1</code> (JavaScript Module) — nach Updates Query erhöhen / hard-reload</li>

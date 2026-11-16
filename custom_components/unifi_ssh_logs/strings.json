@@ -3,33 +3,36 @@
     "step": {
       "user": {
         "title": "UniFi SSH Logs",
-        "description": "Provide an SSH private key path and/or password. For secrets.yaml use YAML setup (see README).",
+        "description": "Connect to the UniFi console over SSH. Leave the private key empty to let Home Assistant generate one; the next step shows the public key to add on the console. You can also paste an existing OpenSSH private key, or use a password only.",
         "data": {
           "host": "Console host",
           "username": "SSH username",
-          "key_path": "Private key path (optional if password set)",
-          "password": "SSH password (optional if key set)",
-          "known_hosts": "known_hosts path",
-          "out_dir": "Log output directory",
-          "scan_interval": "Poll interval (seconds)",
-          "enable_parsing": "Enable alert parsing",
-          "custom_rules_path": "Custom rules directory",
-          "fetch_messages": "Fetch /var/log/messages",
-          "fetch_journal": "Fetch journalctl -u unifi",
-          "fetch_unifi": "Fetch UniFi app logs"
+          "private_key": "Private key (OpenSSH format, optional)",
+          "password": "SSH password (optional if key set)"
+        }
+      },
+      "authorize": {
+        "title": "Authorise the SSH key",
+        "description": "Add this public key on the UniFi console (Settings → Control Plane → Console → SSH / authorized_keys for the SSH user), wait a moment for it to apply, then submit. You can fix host or username below if the connection fails; the key stays the same.\n\n`{public_key}`",
+        "data": {
+          "host": "Console host",
+          "username": "SSH username"
         }
       }
     },
     "error": {
       "key_missing": "SSH private key file not found",
-      "auth_missing": "Provide a valid key path or a password",
+      "auth_missing": "Provide a valid key or a password",
+      "invalid_key": "The private key could not be read",
+      "invalid_auth": "SSH login rejected — check username and that the public key is authorised on the console",
+      "cannot_connect": "Cannot reach the console over SSH",
       "path_outside_config": "Paths must stay under the Home Assistant config directory",
       "unknown": "Unexpected error"
     },
     "abort": {
       "already_configured": "This UniFi console is already configured",
       "key_missing": "SSH private key file not found",
-      "auth_missing": "Provide a valid key path or a password",
+      "auth_missing": "Provide a valid key or a password",
       "path_outside_config": "Paths must stay under the Home Assistant config directory",
       "unknown": "Unexpected error"
     }
@@ -48,14 +51,14 @@
           "retention_max_age_days": "Delete logs older than (days)",
           "custom_rules_path": "Custom rules directory",
           "out_dir": "Log output directory",
-          "key_path": "Private key path",
+          "key_path": "Private key path (legacy; leave empty if using stored key)",
           "password": "SSH password (leave empty to keep current)"
         }
       }
     },
     "error": {
       "key_missing": "SSH private key file not found",
-      "auth_missing": "Provide a valid key path or a password",
+      "auth_missing": "Provide a valid key or a password",
       "path_outside_config": "Paths must stay under the Home Assistant config directory",
       "unknown": "Unexpected error"
     }

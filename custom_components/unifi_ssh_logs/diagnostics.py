@@ -8,7 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD
 from homeassistant.core import HomeAssistant
 
-from .const import CONF_KEY_PATH, DOMAIN, PUBLIC_SAMPLE_LEN
+from .const import CONF_KEY_PATH, CONF_PRIVATE_KEY, DOMAIN, PUBLIC_SAMPLE_LEN
 from .coordinator import UnifiSshLogsCoordinator
 from .sanitize import redact_text, sanitize_error
 
@@ -26,6 +26,11 @@ async def async_get_config_entry_diagnostics(
     safe_config = dict(merged)
     if CONF_PASSWORD in safe_config:
         safe_config[CONF_PASSWORD] = _REDACT if safe_config[CONF_PASSWORD] else None
+    if CONF_PRIVATE_KEY in safe_config and safe_config[CONF_PRIVATE_KEY]:
+        safe_config[CONF_PRIVATE_KEY] = _REDACT
+        safe_config["private_key_configured"] = True
+    else:
+        safe_config["private_key_configured"] = False
     if CONF_KEY_PATH in safe_config and safe_config[CONF_KEY_PATH]:
         # Keep path shape, redact filename contents implication
         safe_config[CONF_KEY_PATH] = str(safe_config[CONF_KEY_PATH])

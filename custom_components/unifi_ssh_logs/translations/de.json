@@ -3,33 +3,36 @@
     "step": {
       "user": {
         "title": "UniFi SSH Logs",
-        "description": "SSH-Private-Key-Pfad und/oder Passwort angeben. Für secrets.yaml YAML-Setup nutzen (siehe README).",
+        "description": "SSH-Verbindung zur UniFi-Console. Private Key leer lassen, damit Home Assistant einen erzeugt — der nächste Schritt zeigt den Public Key zum Eintragen. Alternativ vorhandenen OpenSSH-Private-Key einfügen oder nur Passwort nutzen.",
         "data": {
           "host": "Console-Host",
           "username": "SSH-Benutzer",
-          "key_path": "Pfad zum privaten Schlüssel (optional bei Passwort)",
-          "password": "SSH-Passwort (optional bei Key)",
-          "known_hosts": "known_hosts-Pfad",
-          "out_dir": "Log-Ausgabeverzeichnis",
-          "scan_interval": "Poll-Intervall (Sekunden)",
-          "enable_parsing": "Alert-Parsing aktivieren",
-          "custom_rules_path": "Verzeichnis für eigene Rules",
-          "fetch_messages": "/var/log/messages abrufen",
-          "fetch_journal": "journalctl -u unifi abrufen",
-          "fetch_unifi": "UniFi-App-Logs abrufen"
+          "private_key": "Private Key (OpenSSH, optional)",
+          "password": "SSH-Passwort (optional bei Key)"
+        }
+      },
+      "authorize": {
+        "title": "SSH-Key freigeben",
+        "description": "Diesen Public Key auf der UniFi-Console hinterlegen (Einstellungen → Control Plane → Console → SSH / authorized_keys für den SSH-Benutzer), kurz warten, dann bestätigen. Host oder Benutzer unten korrigieren, falls die Verbindung scheitert — der Key bleibt gleich.\n\n`{public_key}`",
+        "data": {
+          "host": "Console-Host",
+          "username": "SSH-Benutzer"
         }
       }
     },
     "error": {
       "key_missing": "SSH-Private-Key-Datei nicht gefunden",
-      "auth_missing": "Gültigen Key-Pfad oder Passwort angeben",
+      "auth_missing": "Gültigen Key oder Passwort angeben",
+      "invalid_key": "Private Key konnte nicht gelesen werden",
+      "invalid_auth": "SSH-Login abgelehnt — Benutzer und freigegebenen Public Key prüfen",
+      "cannot_connect": "Console per SSH nicht erreichbar",
       "path_outside_config": "Pfade müssen unter dem Home-Assistant-Config-Verzeichnis liegen",
       "unknown": "Unerwarteter Fehler"
     },
     "abort": {
       "already_configured": "Diese UniFi-Console ist bereits konfiguriert",
       "key_missing": "SSH-Private-Key-Datei nicht gefunden",
-      "auth_missing": "Gültigen Key-Pfad oder Passwort angeben",
+      "auth_missing": "Gültigen Key oder Passwort angeben",
       "path_outside_config": "Pfade müssen unter dem Home-Assistant-Config-Verzeichnis liegen",
       "unknown": "Unerwarteter Fehler"
     }
@@ -48,14 +51,14 @@
           "retention_max_age_days": "Logs älter als (Tage) löschen",
           "custom_rules_path": "Verzeichnis für eigene Rules",
           "out_dir": "Log-Ausgabeverzeichnis",
-          "key_path": "Pfad zum privaten Schlüssel",
+          "key_path": "Key-Pfad (Legacy; leer lassen bei gespeichertem Key)",
           "password": "SSH-Passwort (leer lassen = unverändert)"
         }
       }
     },
     "error": {
       "key_missing": "SSH-Private-Key-Datei nicht gefunden",
-      "auth_missing": "Gültigen Key-Pfad oder Passwort angeben",
+      "auth_missing": "Gültigen Key oder Passwort angeben",
       "path_outside_config": "Pfade müssen unter dem Home-Assistant-Config-Verzeichnis liegen",
       "unknown": "Unerwarteter Fehler"
     }
@@ -72,7 +75,7 @@
       "last_fetch": { "name": "Letzter Abruf" },
       "last_error": { "name": "Letzter Fehler" },
       "open_alerts": { "name": "Offene Alerts" },
-      "match_count": { "name": "Treffer gesamt" }
+      "match_count": { "name": "Trefferzahl" }
     },
     "binary_sensor": {
       "alert_rule": { "name": "{rule}" }
